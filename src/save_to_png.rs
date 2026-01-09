@@ -68,6 +68,7 @@ pub fn save_to_png(ctx: &RenderCtx, texture: &Texture) {
         texture.width(),
         texture.height(),
     );
+    png_encoder.set_compression(png::Compression::NoCompression);
     png_encoder.set_color(png::ColorType::Rgba);
     let mut png_writer = png_encoder.write_header().unwrap();
     png_writer.write_image_data(&mapped_buffer).unwrap();

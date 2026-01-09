@@ -4,7 +4,7 @@ use crate::RenderCtx;
 
 pub fn render(ctx: &RenderCtx) -> Texture {
     const FORMAT: TextureFormat = TextureFormat::Rgba8Unorm;
-    const TEXTURE_DIM: u32 = 4096;
+    const TEXTURE_DIM: u32 = 1024;
 
     let texture = ctx.device.create_texture(&TextureDescriptor {
         label: Some("render_texture"),
