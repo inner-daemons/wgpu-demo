@@ -1,3 +1,5 @@
+//! Stuff related to wgpu context creation & setup
+
 use wgpu::*;
 
 pub struct RenderCtx {
@@ -8,7 +10,9 @@ pub struct RenderCtx {
 }
 
 pub async fn create_ctx() -> RenderCtx {
+    // Create API instance
     let instance = Instance::new(&Default::default());
+    // Select a physical device and backend (e.g. RTX 3060 on Vulkan)
     let adapter = instance
         .request_adapter(&RequestAdapterOptions {
             power_preference: PowerPreference::HighPerformance,
@@ -17,6 +21,7 @@ pub async fn create_ctx() -> RenderCtx {
         })
         .await
         .expect("No suitable adapter found");
+    // Request a handle to that device and queue to submit work to
     let (device, queue) = adapter.request_device(&Default::default()).await.unwrap();
 
     RenderCtx {

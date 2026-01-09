@@ -20,6 +20,7 @@ pub fn render(ctx: &RenderCtx) -> Texture {
         usage: TextureUsages::RENDER_ATTACHMENT | TextureUsages::COPY_SRC,
         view_formats: &[],
     });
+    // Need a view to tell the GPU which parts of the texture to render to
     let texture_view = texture.create_view(&TextureViewDescriptor {
         label: Some("render_texture_view"),
         array_layer_count: None,
@@ -31,6 +32,7 @@ pub fn render(ctx: &RenderCtx) -> Texture {
         base_mip_level: 0,
         mip_level_count: None,
     });
+
     let mut encoder = ctx
         .device
         .create_command_encoder(&CommandEncoderDescriptor {
@@ -38,14 +40,21 @@ pub fn render(ctx: &RenderCtx) -> Texture {
         });
 
     {
-        let render_pass = encoder.begin_render_pass(&RenderPassDescriptor {
+        // The render pass tells the GPU to prepare to render to specific textures.
+        let mut render_pass = encoder.begin_render_pass(&RenderPassDescriptor {
             label: Some("main_render_pass"),
             color_attachments: &[Some(RenderPassColorAttachment {
                 view: &texture_view,
                 depth_slice: None,
                 resolve_target: None,
                 ops: Operations {
-                    load: LoadOp::Clear(Color::GREEN),
+                    // Clear the screen background color to debug magenta
+                    load: LoadOp::Clear(Color {
+                        r: 1.0,
+                        g: 0.0,
+                        b: 1.0,
+                        a: 1.0,
+                    }),
                     store: StoreOp::Store,
                 },
             })],
@@ -58,5 +67,6 @@ pub fn render(ctx: &RenderCtx) -> Texture {
     }
 
     ctx.queue.submit([encoder.finish()]);
+
     texture
 }

@@ -5,11 +5,16 @@ use wgpu::*;
 use crate::RenderCtx;
 
 pub fn save_to_png(ctx: &RenderCtx, texture: &Texture) {
+    // This is what corresponds to typical PNG color format
     assert!(texture.format() == TextureFormat::Rgba8Unorm);
-    assert!(texture.width().is_multiple_of(256));
-    assert!(texture.height().is_multiple_of(256));
+    // Each row must be properly aligned to 256 bytes. Without this, we would
+    // have to pad the output buffer and then remove that padding when copying
+    // into a buffer for PNG creation before then copying that into a file.
+    assert!(texture.width().is_multiple_of(64));
 
+    // 4 bytes per pixel (1 per channel)
     let num_bytes = (texture.width() as usize) * (texture.height() as usize) * 4;
+    // Download buffer, since texture lives on the GPU so must be copied into special memory.
     let output_staging_buffer = ctx.device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("render_texture_output_buffer"),
         size: num_bytes as u64,
@@ -43,17 +48,19 @@ pub fn save_to_png(ctx: &RenderCtx, texture: &Texture) {
             depth_or_array_layers: 1,
         },
     );
+    // Finish recording work and submit it to the GPU
     let submission = ctx.queue.submit([encoder.finish()]);
 
     output_staging_buffer
         .slice(..)
         .map_async(MapMode::Read, |_| ());
+    // Wait for the submission to complete, after which the buffer will be mapped
     ctx.device
         .poll(wgpu::wgt::PollType::Wait {
             submission_index: Some(submission),
             timeout: None,
         })
-        .expect("Failed to wait for texture copy submission when saving to PNG");
+        .unwrap();
     let mapped_buffer = output_staging_buffer.get_mapped_range(..);
 
     let mut png_encoder = png::Encoder::new(
