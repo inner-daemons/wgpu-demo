@@ -8,4 +8,4 @@ bytemuck = "1.24.0"
 glam = "0.30.10"
 png = "0.18.0"
 pollster = "0.4.0"
-wgpu = "28.0.0"
+wgpu = {git = "https://github.com/inner-daemons/wgpu", branch = "mesh-shading/msl-write"}

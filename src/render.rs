@@ -63,6 +63,85 @@ pub fn render(ctx: &RenderCtx) -> Texture {
             occlusion_query_set: None,
             multiview_mask: None,
         });
+        let shader = ctx
+            .device
+            .create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
+        /*let pipeline = ctx
+            .device
+            .create_render_pipeline(&RenderPipelineDescriptor {
+                label: None,
+                layout: None,
+                vertex: VertexState {
+                    module: &shader,
+                    entry_point: Some("vertex"),
+                    compilation_options: Default::default(),
+                    buffers: &[],
+                },
+                primitive: PrimitiveState {
+                    topology: PrimitiveTopology::TriangleList,
+                    strip_index_format: None,
+                    front_face: FrontFace::Ccw,
+                    cull_mode: Some(Face::Back),
+                    unclipped_depth: false,
+                    polygon_mode: PolygonMode::Fill,
+                    conservative: false,
+                },
+                depth_stencil: None,
+                multisample: Default::default(),
+                fragment: Some(FragmentState {
+                    module: &shader,
+                    entry_point: Some("fragment"),
+                    compilation_options: Default::default(),
+                    targets: &[Some(ColorTargetState {
+                        format: FORMAT,
+                        blend: None,
+                        write_mask: ColorWrites::ALL,
+                    })],
+                }),
+                multiview_mask: None,
+                cache: None,
+            });
+        render_pass.set_pipeline(&pipeline);
+        render_pass.draw(0..3, 0..1);*/
+        let pipeline = ctx.device.create_mesh_pipeline(&MeshPipelineDescriptor {
+            label: None,
+            layout: None,
+            task: Some(TaskState {
+                module: &shader,
+                entry_point: Some("task"),
+                compilation_options: Default::default(),
+            }),
+            mesh: MeshState {
+                module: &shader,
+                entry_point: Some("mesh"),
+                compilation_options: Default::default(),
+            },
+            primitive: PrimitiveState {
+                topology: PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: FrontFace::Ccw,
+                cull_mode: Some(Face::Back),
+                unclipped_depth: false,
+                polygon_mode: PolygonMode::Fill,
+                conservative: false,
+            },
+            depth_stencil: None,
+            multisample: Default::default(),
+            fragment: Some(FragmentState {
+                module: &shader,
+                entry_point: Some("fragment"),
+                compilation_options: Default::default(),
+                targets: &[Some(ColorTargetState {
+                    format: FORMAT,
+                    blend: None,
+                    write_mask: ColorWrites::ALL,
+                })],
+            }),
+            multiview: None,
+            cache: None,
+        });
+        render_pass.set_pipeline(&pipeline);
+        render_pass.draw_mesh_tasks(1, 1, 1);
         // Render
     }
 
